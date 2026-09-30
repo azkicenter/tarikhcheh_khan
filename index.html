@@ -132,6 +132,14 @@
   .plate-row select { width: 72px; appearance: none; -webkit-appearance: none; cursor: pointer; font-weight: 700;
     background: var(--surface-tint) url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='6'><path d='M0 0l5 6 5-6z' fill='%236b7280'/></svg>") no-repeat 7px center;
     padding: 8px 6px 8px 20px; text-align-last: center; }
+  /* کد ملی و کد رهگیری: کنار هم، هرکدام به عرض کل کادرهای پلاک (۴×۷۲ + ۳×۸ = ۳۱۲)؛ در صفحه‌ی باریک زیر هم می‌روند */
+  .search-panel .fields { justify-content: center; gap: 12px 24px; }
+  .search-panel .field { flex: 0 1 312px; min-width: 0; }
+  .search-panel .field input { height: 46px; }
+  /* عنوان «پلاک ملی» کنار پلاک می‌ماند ولی جای پلاک را جابه‌جا نمی‌کند تا لبه‌ی پلاک و کادرهای زیرش دقیقاً هم‌تراز باشد */
+  .plate-block { position: relative; }
+  .plate-block > label { position: absolute; left: calc(50% + 168px); white-space: nowrap; }
+  @media (max-width: 640px) { .plate-block { flex-direction: column; } .plate-block > label { position: static; } }
   select option { color: var(--ink); background: var(--option-bg); font-weight: 400; }
 
   /* دکمه‌ها: شیشه‌ی گرادیانی */
