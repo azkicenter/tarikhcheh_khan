@@ -306,6 +306,16 @@ window.addEventListener("focus", checkServer);
   .forEach(l => $("lt").add(new Option(l, l)));
 $("lt").value = "ب";
 
+// بعد از پر شدن پلاک ← اولین فیلد خالیِ «کد ملی / کد رهگیری»؛ اگر هر دو پر بودند ← دکمه‌ی استعلام و محاسبه
+function focusNextEmpty() {
+  const empty = [$("nc"), $("tc")].find(x => !x.value.trim());
+  (empty || $("go")).focus();
+}
+// با پر شدن کد ملی (۱۰ رقم) همین منطق اجرا می‌شود: اگر کد رهگیری خالی است می‌رود روی آن، وگرنه روی دکمه
+$("nc").addEventListener("input", () => { if ($("nc").value.length >= $("nc").maxLength) focusNextEmpty(); });
+// کد رهگیری طول ثابت ندارد؛ با Enter مستقیم استعلام می‌شود
+["nc", "tc"].forEach(id => $(id).addEventListener("keydown", e => { if (e.key === "Enter") $("go").click(); }));
+
 // ترتیب پر کردن پلاک: دو رقم ← حرف ← سه رقم ← سریال؛ با پر شدن هر فیلد خودکار به بعدی می‌رود
 const PLATE = ["l2", "lt", "r3", "sr"].map($);
 PLATE.forEach((f, i) => {
@@ -316,7 +326,7 @@ PLATE.forEach((f, i) => {
     f.addEventListener("input", () => {
       // ارقام فارسی/عربی هم پذیرفته می‌شود (سرور نرمال می‌کند)؛ غیر رقم حذف می‌شود
       f.value = f.value.replace(/[^0-9\u06F0-\u06F9\u0660-\u0669]/g, "");
-      if (f.value.length >= f.maxLength) { next ? next.focus() : $("go").focus(); }
+      if (f.value.length >= f.maxLength) { next ? next.focus() : focusNextEmpty(); }
     });
     f.addEventListener("keydown", e => { if (e.key === "Backspace" && !f.value && prev) { e.preventDefault(); prev.focus(); } });
   }
@@ -483,7 +493,7 @@ function show(data) {
 $("go").onclick = async () => {
   const btn = $("go"), out = $("out"), st = $("status");
   btn.disabled = true; btn.textContent = "در حال استعلام…"; out.replaceChildren();
-  st.innerHTML = ""; st.append(el("div", "status loading", "در حال استعلام و بررسی تخفیفات ... ممکن است چند لحظه طول بکشد."));
+  st.innerHTML = ""; st.append(el("div", "status loading", "در حال استعلام از بیمه مرکزی و بیمه ملت… (ممکن است چند ثانیه طول بکشد)"));
   try {
     const res = await fetch(API_BASE + "/api/analyze", {
       method: "POST", headers: {"Content-Type": "application/json"},
