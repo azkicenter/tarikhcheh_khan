@@ -147,17 +147,20 @@
   .status.error { color: var(--danger); background: var(--danger-soft); border-radius: var(--radius-sm); padding: 10px 12px; font-weight: 500; }
   .status.loading { color: var(--accent-strong); }
 
-  .summary { display: flex; gap: 18px; align-items: center; flex-wrap: wrap; }
-  .big { font-size: 2.6rem; font-weight: 800; line-height: 1.1; color: var(--accent-strong);
-    background: linear-gradient(135deg, var(--accent), var(--accent-deep)); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
   .badge { display: inline-block; padding: 2px 10px; border-radius: 99px; font-size: .78rem; font-weight: 600; background: var(--success-soft); color: var(--success); }
   .badge.review { background: var(--amber-soft); color: var(--amber); }
   .kv { margin: 3px 0; color: var(--ink-soft); font-size: .85rem; }
   .kv b { color: var(--ink); direction: ltr; unicode-bidi: plaintext; }
 
-  .announce-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 12px; }
-  @media (max-width: 640px) { .announce-grid { grid-template-columns: 1fr; } }
-  .discount-box { border: 1px solid var(--line); border-radius: var(--radius); padding: 12px; background: var(--surface-tint); }
+  .announce-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 14px; }
+  .stat-row { display: flex; justify-content: space-around; align-items: flex-end; gap: 10px; text-align: center; }
+  .stat-label { font-size: .75rem; color: var(--ink-soft); margin-bottom: 2px; }
+  .stat-value { font-size: 1.9rem; font-weight: 800; line-height: 1.25; color: var(--accent-strong); direction: ltr; unicode-bidi: plaintext; }
+  .discount-box h3 { text-align: center; }
+  .info-row { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 22px; margin-bottom: 12px; }
+  .info-row .kv { margin: 0; }
+  @media (max-width: 420px) { .stat-value { font-size: 1.5rem; } }
+  .discount-box { border: 1px solid var(--line); border-radius: var(--radius); padding: 12px 8px; background: var(--surface-tint); }
   .discount-box h3 { margin: 0 0 8px; font-size: .85rem; font-weight: 700; color: var(--accent-strong); }
   .discount-box .fields { flex-wrap: nowrap; }
   .hint { font-size: .72rem; color: var(--amber); margin-top: 6px; }
@@ -222,7 +225,6 @@
     .sub { display: none; }
     .print-title { display: block; font-size: 1rem; margin: 0 0 10px; text-align: center; color: #111; }
     .panel { box-shadow: none; -webkit-backdrop-filter: none; backdrop-filter: none; animation: none; }
-    .big { background: none; -webkit-text-fill-color: #0a4276; color: #0a4276; }
     .announce-text, tr.damage-row td, tr.endorsement-row td, table.policy-table thead th { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
     tr.policy-row, tr.sub-row { break-inside: avoid; }
     @page { size: A4 landscape; margin: 10mm; }
@@ -329,26 +331,19 @@ function buildAnnouncement(r) {
 
 const discountBox = (title, years, pct) => {
   const b = el("div", "discount-box"); b.append(el("h3", "", title));
-  const kv = (k, v) => { const d = el("div", "kv", k + ": "); d.append(el("b", "", val(v))); return d; };
-  b.append(kv("سال", years), kv("درصد", pct === null || pct === undefined ? pct : pct + "٪"));
+  const stat = (label, value) => { const d = el("div", "stat"); d.append(el("div", "stat-label", label), el("div", "stat-value", value)); return d; };
+  const row = el("div", "stat-row");
+  row.append(stat("سال", val(years)), stat("درصد", pct === null || pct === undefined ? "-" : pct + "٪"));
+  b.append(row);
   return b;
 };
 
 function announceCard(r, data) {
   const card = el("div", "panel");
-  card.append(el("h2", "", "اعلام تخفیف"));
+  card.append(el("h2", "", "نتیجه بررسی تخفیفات تاریخچه پلاک"));
 
-  const top = el("div", "summary");
-  top.append(el("div", "big", (r.percent ?? 0) + "٪"));
-  const meta = el("div");
-  meta.append(el("span", "badge" + (data.status === "ok" ? "" : " review"),
-    data.status === "ok" ? "قطعی" : "نیاز به بررسی کارشناس"));
-  const kv = (k, v) => { const d = el("div", "kv", k + ": "); d.append(el("b", "", val(v))); return d; };
-  meta.append(kv("شماره بیمه‌نامه‌ی مبنا", r.policy_number), kv("شماره شاسی خودروی مبنا", r.best_chassis));
-  top.append(meta);
-  card.append(top);
-
-  const grid = el("div", "announce-grid"); grid.style.marginTop = "14px";
+  // دو کادر کنار هم: تخفیف ثالث و تخفیف حوادث راننده
+  const grid = el("div", "announce-grid");
   const third = discountBox("تخفیف ثالث", r.years, r.percent);
   const missing = r.driver_percent === null || r.driver_percent === undefined;
   const drv = discountBox("تخفیف حوادث راننده", missing ? r.years : r.driver_years, missing ? r.percent : r.driver_percent);
@@ -356,6 +351,14 @@ function announceCard(r, data) {
   grid.append(third, drv);
   card.append(grid);
 
+  // شماره بیمه‌نامه، شماره شاسی و وضعیت
+  const info = el("div", "info-row");
+  const kv = (k, v) => { const d = el("div", "kv", k + ": "); d.append(el("b", "", val(v))); return d; };
+  info.append(kv("شماره بیمه‌نامه", r.policy_number), kv("شماره شاسی", r.best_chassis),
+    el("span", "badge" + (data.status === "ok" ? "" : " review"), data.status === "ok" ? "قطعی" : "نیاز به بررسی کارشناس"));
+  card.append(info);
+
+  // متن قابل کپی
   const box = el("div", "announce-text"); const txt = el("span"); const copy = el("button", "", "کپی");
   txt.textContent = buildAnnouncement(r);
   copy.onclick = () => navigator.clipboard.writeText(txt.textContent).then(() => {
