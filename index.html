@@ -118,7 +118,7 @@
   input::placeholder { color: var(--ink-faint); }
   input:-webkit-autofill { -webkit-text-fill-color: var(--ink) !important; -webkit-box-shadow: 0 0 0 1000px var(--surface-tint) inset !important; transition: background-color 9999s ease-in-out 0s !important; }
   .search-panel .field label { text-align: center; }
-  .plate-block { margin-top: 14px; display: flex; align-items: center; justify-content: center; gap: 12px; flex-wrap: wrap; }
+  .plate-block { margin: 0 0 16px; display: flex; align-items: center; justify-content: center; gap: 12px; flex-wrap: wrap; }
   .plate-block > label { font-weight: 700; color: var(--ink); font-size: .85rem; }
   /* ترتیب چپ‌به‌راست مثل خود پلاک: دو رقم - حرف - سه رقم - سریال؛ ترتیب Tab و پرش خودکار هم همین است */
   .plate-row { display: flex; gap: 8px; direction: ltr; }
@@ -149,15 +149,17 @@
 
   .badge { display: inline-block; padding: 2px 10px; border-radius: 99px; font-size: .78rem; font-weight: 600; background: var(--success-soft); color: var(--success); }
   .badge.review { background: var(--amber-soft); color: var(--amber); }
-  .panel-head { display: flex; align-items: center; flex-wrap: wrap; gap: 6px 12px; margin-bottom: 12px; }
+  .panel-head { display: flex; align-items: center; justify-content: center; text-align: center; flex-wrap: wrap; gap: 6px 12px; margin-bottom: 12px; }
   .panel-head h2 { margin: 0; }
   .announce-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px; }
   .discount-box { border: 1px solid var(--line); border-radius: var(--radius-sm); padding: 8px 10px; background: var(--surface-tint); text-align: center; font-size: .85rem; line-height: 1.7; }
   .discount-box .dlabel { color: var(--ink-soft); font-weight: 600; }
   .discount-box .dval { color: var(--accent-strong); font-weight: 700; }
   .hint.center { text-align: center; margin: -4px 0 10px; }
-  .info-row { display: flex; flex-direction: column; align-items: center; gap: 2px; margin-bottom: 12px; text-align: center; }
-  .info-row .kv { margin: 0; }
+  .info-row { display: flex; flex-direction: column; align-items: center; gap: 4px; margin-bottom: 14px; text-align: center; }
+  .script-title { font-size: .9rem; font-weight: 700; margin: 14px 0 8px; color: var(--ink); text-align: center; }
+  .info-row .kv { margin: 0; font-size: 1.05rem; }
+  .info-row .kv b { font-size: 1.15rem; }
   .kv { margin: 3px 0; color: var(--ink-soft); font-size: .85rem; }
   .kv b { color: var(--ink); direction: ltr; unicode-bidi: plaintext; }
 
@@ -241,10 +243,6 @@
   <div id="server"></div>
 
   <div class="panel search-panel">
-    <div class="fields">
-      <div class="field"><label for="nc">کد ملی</label><input id="nc" inputmode="numeric" maxlength="10" autocomplete="off"></div>
-      <div class="field"><label for="tc">کد رهگیری</label><input id="tc" inputmode="numeric" autocomplete="off"></div>
-    </div>
     <div class="plate-block">
       <label>پلاک ملی</label>
       <div class="plate-row">
@@ -253,6 +251,10 @@
         <input id="r3" inputmode="numeric" maxlength="3" placeholder="345" title="سه رقم سمت راست" aria-label="سه رقم سمت راست" autocomplete="off">
         <input id="sr" inputmode="numeric" maxlength="2" placeholder="67" title="سریال (ایران)" aria-label="سریال (ایران)" autocomplete="off">
       </div>
+    </div>
+    <div class="fields">
+      <div class="field"><label for="nc">کد ملی</label><input id="nc" inputmode="numeric" maxlength="10" autocomplete="off"></div>
+      <div class="field"><label for="tc">کد رهگیری</label><input id="tc" inputmode="numeric" autocomplete="off"></div>
     </div>
     <button id="go" class="go">استعلام و محاسبه</button>
   </div>
@@ -346,6 +348,12 @@ function announceCard(r, data) {
     el("span", "badge" + (data.status === "ok" ? "" : " review"), data.status === "ok" ? "قطعی" : "نیاز به بررسی کارشناس"));
   card.append(head);
 
+  // شماره بیمه‌نامه (وسط) و زیرش شماره شاسی، بالای کادرهای تخفیف
+  const info = el("div", "info-row");
+  const kv = (k, v) => { const d = el("div", "kv", k + ": "); d.append(el("b", "", val(v))); return d; };
+  info.append(kv("شماره بیمه‌نامه", r.policy_number), kv("شماره شاسی", r.best_chassis));
+  card.append(info);
+
   // دو کادر کنار هم: تخفیف ثالث و تخفیف حوادث راننده
   const grid = el("div", "announce-grid");
   const missing = r.driver_percent === null || r.driver_percent === undefined;
@@ -354,13 +362,8 @@ function announceCard(r, data) {
   card.append(grid);
   if (missing) card.append(el("div", "hint center", "تخفیف راننده از منبع استعلام نشد؛ مقدار ثالث اعلام می‌شود."));
 
-  // شماره بیمه‌نامه (وسط) و زیرش شماره شاسی
-  const info = el("div", "info-row");
-  const kv = (k, v) => { const d = el("div", "kv", k + ": "); d.append(el("b", "", val(v))); return d; };
-  info.append(kv("شماره بیمه‌نامه", r.policy_number), kv("شماره شاسی", r.best_chassis));
-  card.append(info);
-
   // متن قابل کپی
+  card.append(el("div", "script-title", "اسکریپت انتقالی"));
   const box = el("div", "announce-text"); const txt = el("span"); const copy = el("button", "", "کپی");
   txt.textContent = buildAnnouncement(r);
   copy.onclick = () => navigator.clipboard.writeText(txt.textContent).then(() => {
