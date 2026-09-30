@@ -164,6 +164,8 @@
   .badge.review { background: var(--amber-soft); color: var(--amber); }
   .panel-head { display: flex; align-items: center; justify-content: center; text-align: center; flex-wrap: wrap; gap: 6px 12px; margin-bottom: 12px; }
   .panel-head h2 { margin: 0; }
+  /* تیتر نتیجه + وضعیت (قطعی) داخل یک کادر */
+  .panel-head { border: 1px solid var(--line); border-radius: var(--radius-sm); background: var(--surface-tint); padding: 10px 14px; }
   .announce-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px; }
   .discount-box { border: 1px solid var(--line); border-radius: var(--radius-sm); padding: 8px 10px; background: var(--surface-tint); text-align: center; font-size: .85rem; line-height: 1.7; }
   .discount-box .dlabel { color: var(--ink-soft); font-weight: 600; }
@@ -185,7 +187,7 @@
 
   .warn { background: var(--amber-soft); color: var(--amber); border-radius: var(--radius-sm); padding: 8px 12px; margin: 6px 0; font-size: .85rem; font-weight: 500; }
 
-  .details-bar { margin: 0 0 16px; }
+  .details-bar { margin: 0 0 16px; text-align: center; }
   .details-toggle { color: var(--accent-strong); background: var(--surface); border: 1px solid var(--accent); padding: 6px 16px; font-size: .85rem; box-shadow: var(--shadow-card); }
   .details-toggle:hover { background: var(--accent-soft); }
   .details-toggle .arrow { display: inline-block; margin-inline-start: 6px; transition: transform .2s; }
