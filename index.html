@@ -149,20 +149,18 @@
 
   .badge { display: inline-block; padding: 2px 10px; border-radius: 99px; font-size: .78rem; font-weight: 600; background: var(--success-soft); color: var(--success); }
   .badge.review { background: var(--amber-soft); color: var(--amber); }
+  .panel-head { display: flex; align-items: center; flex-wrap: wrap; gap: 6px 12px; margin-bottom: 12px; }
+  .panel-head h2 { margin: 0; }
+  .announce-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px; }
+  .discount-box { border: 1px solid var(--line); border-radius: var(--radius-sm); padding: 8px 10px; background: var(--surface-tint); text-align: center; font-size: .85rem; line-height: 1.7; }
+  .discount-box .dlabel { color: var(--ink-soft); font-weight: 600; }
+  .discount-box .dval { color: var(--accent-strong); font-weight: 700; }
+  .hint.center { text-align: center; margin: -4px 0 10px; }
+  .info-row { display: flex; flex-direction: column; align-items: center; gap: 2px; margin-bottom: 12px; text-align: center; }
+  .info-row .kv { margin: 0; }
   .kv { margin: 3px 0; color: var(--ink-soft); font-size: .85rem; }
   .kv b { color: var(--ink); direction: ltr; unicode-bidi: plaintext; }
 
-  .announce-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 14px; }
-  .stat-row { display: flex; justify-content: space-around; align-items: flex-end; gap: 10px; text-align: center; }
-  .stat-label { font-size: .75rem; color: var(--ink-soft); margin-bottom: 2px; }
-  .stat-value { font-size: 1.9rem; font-weight: 800; line-height: 1.25; color: var(--accent-strong); direction: ltr; unicode-bidi: plaintext; }
-  .discount-box h3 { text-align: center; }
-  .info-row { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 22px; margin-bottom: 12px; }
-  .info-row .kv { margin: 0; }
-  @media (max-width: 420px) { .stat-value { font-size: 1.5rem; } }
-  .discount-box { border: 1px solid var(--line); border-radius: var(--radius); padding: 12px 8px; background: var(--surface-tint); }
-  .discount-box h3 { margin: 0 0 8px; font-size: .85rem; font-weight: 700; color: var(--accent-strong); }
-  .discount-box .fields { flex-wrap: nowrap; }
   .hint { font-size: .72rem; color: var(--amber); margin-top: 6px; }
   li.endorse { color: var(--amber); font-weight: 600; }
   .announce-text { background: var(--accent-soft); border: 1px dashed var(--accent); border-radius: var(--radius); padding: 12px 14px; line-height: 2; font-weight: 600; color: var(--ink); display: flex; gap: 10px; align-items: flex-start; justify-content: space-between; }
@@ -329,33 +327,37 @@ function buildAnnouncement(r) {
            ? ` — نیاز به الحاقیه حذف تخفیفات دارد (بیمه‌نامه ${r.endorsement_policies.join("، ")} هنوز جاری است)` : "");
 }
 
+// یک کادر کوچک: «تخفیف ثالث: 12 سال 60 درصد»
 const discountBox = (title, years, pct) => {
-  const b = el("div", "discount-box"); b.append(el("h3", "", title));
-  const stat = (label, value) => { const d = el("div", "stat"); d.append(el("div", "stat-label", label), el("div", "stat-value", value)); return d; };
-  const row = el("div", "stat-row");
-  row.append(stat("سال", val(years)), stat("درصد", pct === null || pct === undefined ? "-" : pct + "٪"));
-  b.append(row);
+  const b = el("div", "discount-box");
+  const has = pct !== null && pct !== undefined;
+  const yearsPart = years !== null && years !== undefined ? years + " سال " : "";
+  b.append(el("span", "dlabel", title + ":"), document.createTextNode(" "),
+           el("span", "dval", has ? yearsPart + pct + " درصد" : "-"));
   return b;
 };
 
 function announceCard(r, data) {
   const card = el("div", "panel");
-  card.append(el("h2", "", "نتیجه بررسی تخفیفات تاریخچه پلاک"));
+
+  // تیتر + وضعیت کنار آن
+  const head = el("div", "panel-head");
+  head.append(el("h2", "", "نتیجه بررسی تخفیفات تاریخچه پلاک"),
+    el("span", "badge" + (data.status === "ok" ? "" : " review"), data.status === "ok" ? "قطعی" : "نیاز به بررسی کارشناس"));
+  card.append(head);
 
   // دو کادر کنار هم: تخفیف ثالث و تخفیف حوادث راننده
   const grid = el("div", "announce-grid");
-  const third = discountBox("تخفیف ثالث", r.years, r.percent);
   const missing = r.driver_percent === null || r.driver_percent === undefined;
-  const drv = discountBox("تخفیف حوادث راننده", missing ? r.years : r.driver_years, missing ? r.percent : r.driver_percent);
-  if (missing) drv.append(el("div", "hint", "تخفیف راننده از منبع استعلام نشد؛ مقدار ثالث اعلام می‌شود."));
-  grid.append(third, drv);
+  grid.append(discountBox("تخفیف ثالث", r.years, r.percent),
+              discountBox("تخفیف حوادث راننده", missing ? r.years : r.driver_years, missing ? r.percent : r.driver_percent));
   card.append(grid);
+  if (missing) card.append(el("div", "hint center", "تخفیف راننده از منبع استعلام نشد؛ مقدار ثالث اعلام می‌شود."));
 
-  // شماره بیمه‌نامه، شماره شاسی و وضعیت
+  // شماره بیمه‌نامه (وسط) و زیرش شماره شاسی
   const info = el("div", "info-row");
   const kv = (k, v) => { const d = el("div", "kv", k + ": "); d.append(el("b", "", val(v))); return d; };
-  info.append(kv("شماره بیمه‌نامه", r.policy_number), kv("شماره شاسی", r.best_chassis),
-    el("span", "badge" + (data.status === "ok" ? "" : " review"), data.status === "ok" ? "قطعی" : "نیاز به بررسی کارشناس"));
+  info.append(kv("شماره بیمه‌نامه", r.policy_number), kv("شماره شاسی", r.best_chassis));
   card.append(info);
 
   // متن قابل کپی
