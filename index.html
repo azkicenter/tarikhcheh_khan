@@ -8,7 +8,7 @@
   (function () {
     try {
       var saved = localStorage.getItem('tarikhcheTheme');
-      var theme = saved || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+      var theme = saved === 'dark' ? 'dark' : 'light';
       document.documentElement.setAttribute('data-theme', theme);
     } catch (e) {}
   })();
@@ -141,7 +141,7 @@
   button:hover { filter: brightness(1.06); transform: translateY(-1px); }
   button:active { transform: translateY(0); }
   button:disabled { background: var(--ink-faint); box-shadow: none; cursor: default; transform: none; filter: none; }
-  .go { display: block; width: auto; margin: 14px auto 0; padding: 11px 14px; font-size: .85rem; border-radius: 6px; }
+  .go { display: block; width: auto; margin: 14px auto 0; padding: 11px 18px; font-size: .85rem; border-radius: 18px; border-color: rgba(255,255,255,.6); box-shadow: 0 6px 18px -8px rgba(22,86,245,.45), inset 0 1px 0 rgba(255,255,255,.55); }
 
   .status { margin: 8px 2px; font-size: .85rem; color: var(--ink-soft); }
   .status.error { color: var(--danger); background: var(--danger-soft); border-radius: var(--radius-sm); padding: 10px 12px; font-weight: 500; }
